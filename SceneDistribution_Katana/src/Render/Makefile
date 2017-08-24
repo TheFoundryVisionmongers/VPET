@@ -108,14 +108,17 @@ SOURCES += $(PLUGIN_SRC)/FnPluginManager/client/FnPluginManager.cpp
 # Object files and flags
 OBJS := $(patsubst %.cpp,$(OBJDIR)/%.o,$(SOURCES))
 
-CXXFLAGS = -std=c++11 -Wall -pipe -m64 -fPIC -DPIC -lpthread
+CXXFLAGS = -std=c++11 -Wall -pipe -m64 -fPIC -DPIC -lpthread -g -O0
+
+# MF: extras required to satisfy all symbol links
+LIBS += -ldl
 
 # Targets:
 all: $(OUTFILEPATH)
 
 $(OUTFILEPATH): $(OBJS)
 	@echo "  Compiling SceneDistributor Render plugin..."
-	$(CXX) $(CXXFLAGS) $(OBJS)  $(LIBPATH) $(LIBS) -shared -o $(OUTFILEPATH) -Wl,-soname,$(OUTFILENAME)
+	$(CXX) $(CXXFLAGS) $(OBJS)  $(LIBPATH) $(LIBS) -shared -o $(OUTFILEPATH) -Wl,-soname,$(OUTFILENAME) -Wl,--no-undefined
 
 
 $(OBJDIR)/%.o: %.cpp

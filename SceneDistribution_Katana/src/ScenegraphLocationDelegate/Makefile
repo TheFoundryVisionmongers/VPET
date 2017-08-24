@@ -45,7 +45,7 @@ INCLUDES += -I$(GLM)
 # Object files and flags
 OBJS := $(patsubst %.cpp,$(OBJDIR)/%.o,$(SOURCES))
 
-CXXFLAGS +=  -std=c++11 -Wall -pipe -m64 -fPIC -DPIC
+CXXFLAGS +=  -std=c++11 -Wall -pipe -m64 -fPIC -DPIC -g -O0
 
 
 # RPATH flags - These allow the plugin to find the right shared libraries
@@ -58,13 +58,16 @@ CXXFLAGS +=  -std=c++11 -Wall -pipe -m64 -fPIC -DPIC
 RPATH_FLAGS  = -Wl,-zorigin
 RPATH_FLAGS += -Wl,--rpath=\$$ORIGIN
 
+# MF: extras required to satisfy all symbol links
+LIBS += -ldl
+
 
 # Targets:
 all: $(OUTFILEPATH)
 
 $(OUTFILEPATH): $(OBJS)
 	@echo "  Compiling SceneDistributor Scenegraph Location Delegate Plugins..."
-	$(CXX) $(CXXFLAGS) $(RPATH_FLAGS)  $(OBJS)  $(LIBPATH) $(LIBS) -shared -o $(OUTFILEPATH) -Wl,-soname,$(OUTFILENAME)
+	$(CXX) $(CXXFLAGS) $(RPATH_FLAGS)  $(OBJS)  $(LIBPATH) $(LIBS) -shared -o $(OUTFILEPATH) -Wl,-soname,$(OUTFILENAME) -Wl,--no-undefined
 
 
 $(OBJDIR)/%.o: %.cpp

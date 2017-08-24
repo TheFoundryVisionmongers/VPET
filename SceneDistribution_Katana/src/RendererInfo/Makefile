@@ -39,19 +39,21 @@ SOURCES += $(PLUGIN_SRC)/FnAttribute/client/FnDataBuilder.cpp
 # Logging API
 SOURCES += $(PLUGIN_SRC)/FnLogging/client/FnLogging.cpp
 
+SOURCES += /home/mark.final/dev/Bunsen1.2dev/Apps/Geolib3/PluginApis/src/FnPluginManager/client/FnPluginManager.cpp
+
 INCLUDES += -I$(KATANA_HOME)/plugin_apis/include
 
 # Object files and flags
 OBJS := $(patsubst %.cpp,$(OBJDIR)/%.o,$(SOURCES))
 
-CXXFLAGS = -std=c++11 -Wall -pipe -m64 -fPIC -DPIC
+CXXFLAGS = -std=c++11 -Wall -pipe -m64 -fPIC -DPIC -g -O0
 
 # Targets:
 all: $(OUTFILEPATH)
 
 $(OUTFILEPATH): $(OBJS)
 	@echo "  Compiling SceneDistributor RendererInfo plugin..."
-	$(CXX) $(CXXFLAGS) $(OBJS) $(LIBPATH) $(LIBS) -shared -o $(OUTFILEPATH)
+	$(CXX) $(CXXFLAGS) $(OBJS) $(LIBPATH) $(LIBS) -shared -o $(OUTFILEPATH) -Wl,--no-undefined
 
 $(OBJDIR)/%.o: %.cpp
 	@mkdir -p `dirname $@`
