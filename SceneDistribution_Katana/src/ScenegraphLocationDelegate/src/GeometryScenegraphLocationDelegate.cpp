@@ -315,6 +315,16 @@ void* GeometryScenegraphLocationDelegate::process(FnKat::FnScenegraphIterator sg
                         objPack.uvs.push_back(UVData[uvIndex*2+1]);
 
                     }
+                    else
+                    {
+                        // TODO: MF: arbitrary, but Unity needs them
+                        objPack.uvs.push_back(0);
+                        objPack.uvs.push_back(0);
+                        objPack.uvs.push_back(1);
+                        objPack.uvs.push_back(0);
+                        objPack.uvs.push_back(1);
+                        objPack.uvs.push_back(1);
+                    }
                 }
             }
 
@@ -384,6 +394,13 @@ void* GeometryScenegraphLocationDelegate::process(FnKat::FnScenegraphIterator sg
                         uvs[vertexListData[i+1]] = glm::vec2( UVData[uvIndex*2], UVData[uvIndex*2+1] );
 
                     }
+                    else
+                    {
+                        // TODO: MF: arbitrary, but Unity needs them
+                        uvs[vertexListData[firstIndex]] = glm::vec2( 0, 0 );
+                        uvs[vertexListData[i]] = glm::vec2( 1, 0 );
+                        uvs[vertexListData[i+1]] = glm::vec2( 1, 1 );
+                    }
                 }
             }
 
@@ -417,20 +434,22 @@ void* GeometryScenegraphLocationDelegate::process(FnKat::FnScenegraphIterator sg
         // get geo id
         nodeGeo->geoId = sharedState->objPackList.size()-1;
 
+        std::cout << "VertexCount " << objPack.vertices.size()/3 << " at " << sharedState->objPackList.size() << std::endl;
+        std::cout << "IndexCount  " << objPack.indices.size() << " at " << sharedState->objPackList.size() << std::endl;
+        std::cout << "NormalCount " << objPack.normals.size()/3 << " at " << sharedState->objPackList.size() << std::endl;
+        std::cout << "UVsCount    " << objPack.uvs.size()/2 << " at " << sharedState->objPackList.size() << std::endl;
+
     } // if ( nodeGeo->geoId < 0 )
 
 
-    // std::cout << "VertexCount " << objPack.vertices.size()/3 << " at " << sharedState->objPackList.size() << std::endl;
-    // std::cout << "IndexCount " << objPack.indices.size() << " at " << sharedState->objPackList.size() << std::endl;
-    // std::cout << "Prepare Material" << std::endl;
+    std::cout << "Prepare Material" << std::endl;
 
 
     // Material
     FnAttribute::GroupAttribute materialAttr = FnKat::RenderOutputUtils::getFlattenedMaterialAttr(sgMaterial, sharedState->materialTerminalNamesAttr);
 
 
-    //std::cout << "[INFO SceneDistributor.GeometryScenegraphLocationDelegate] Material:" << std::endl;
-    //std::cout << materialAttr.getXML() << std::endl;
+    std::cout << "[INFO SceneDistributor.GeometryScenegraphLocationDelegate] Material:" << std::endl;
 
     // Retrieve only changed and overridden attributes (i.e. no default values)
     FnAttribute::GroupAttribute groupAttr = materialAttr.getChildByName("parameters");
@@ -441,7 +460,7 @@ void* GeometryScenegraphLocationDelegate::process(FnKat::FnScenegraphIterator sg
 
     if ( groupAttr.isValid() )
     {
-        // std::cout << "childcount: " << tmpAttr.getNumberOfChildren() << std::endl;
+         std::cout << "childcount: " << groupAttr.getNumberOfChildren() << std::endl;
 
         // get diffuse color
         FnAttribute::FloatAttribute colorAttr = groupAttr.getChildByName( "Kd" );
@@ -476,6 +495,86 @@ void* GeometryScenegraphLocationDelegate::process(FnKat::FnScenegraphIterator sg
         float value = roughnessAttr.getValue( 0.33, false );
         nodeGeo->roughness = value;
     }
+    else
+    {
+        FnAttribute::GroupAttribute gonzoSurfAttr = materialAttr.getChildByName("gonzoSurfaceParams");
+        if (gonzoSurfAttr.isValid())
+        {
+            std::cout << "Found Gonzo surface parameters" << std::endl;
+            FnAttribute::FloatAttribute baseColorAttr = gonzoSurfAttr.getChildByName( "baseColor" );
+            if ( baseColorAttr.isValid() )
+            {
+                std::cout << "Found Gonzo baseColor" << std::endl;
+                // Get the color value
+                FnAttribute::FloatConstVector colorData = baseColorAttr.getNearestSample(0.0f);
+
+                nodeGeo->color[0] = colorData[0];
+                nodeGeo->color[1] = colorData[1];
+                nodeGeo->color[2] = colorData[2];
+            }
+            else
+            {
+                std::cout << "No Gonzo colour" << std::endl;
+            }
+        }
+        else
+        {
+            FnAttribute::GroupAttribute fbxSurfAttr = materialAttr.getChildByName("fbxSurfaceParams");
+            if (fbxSurfAttr.isValid())
+            {
+                std::cout << "Found FBX surface parameters" << std::endl;
+                FnAttribute::FloatAttribute diffuseAttr = fbxSurfAttr.getChildByName( "Diffuse" );
+                if ( diffuseAttr.isValid() )
+                {
+                    std::cout << "Found FBX diffuse" << std::endl;
+                    // Get the color value
+                    FnAttribute::FloatConstVector colorData = diffuseAttr.getNearestSample(0.0f);
+
+                    nodeGeo->color[0] = colorData[0];
+                    nodeGeo->color[1] = colorData[1];
+                    nodeGeo->color[2] = colorData[2];
+                }
+                else
+                {
+                    std::cout << "No FBX colour" << std::endl;
+                }
+            }
+            else
+            {
+                FnAttribute::GroupAttribute revitSurfAttr = materialAttr.getChildByName("revitSurfaceParams");
+                if (revitSurfAttr.isValid())
+                {
+                    std::cout << "Found Revit surface params" << std::endl;
+                    FnAttribute::DoubleAttribute diffuseAttr = revitSurfAttr.getChildByName( "color" );
+                    if ( diffuseAttr.isValid() )
+                    {
+                        std::cout << "Found Revit colour" << std::endl;
+                        // Get the color value
+                        FnAttribute::DoubleConstVector colorData = diffuseAttr.getNearestSample(0.0f);
+
+                        nodeGeo->color[0] = colorData[0];
+                        nodeGeo->color[1] = colorData[1];
+                        nodeGeo->color[2] = colorData[2];
+                    }
+                    else
+                    {
+                        std::cout << "No Revit colour" << std::endl;
+                    }
+                }
+                else
+                {
+                    std::cout << "No material attributes" << std::endl;
+                }
+            }
+        }
+    }
+
+    if (materialAttr.isValid())
+    {
+        // TODO(mf): calling getXML() aborts the stdout redirection (usefully)
+        //std::cout << materialAttr.getXML() << std::endl;
+    }
+
 
     FnAttribute::StringAttribute fileAttr = sgIterator.getAttribute("textures.Kd_filename");
 
@@ -483,7 +582,7 @@ void* GeometryScenegraphLocationDelegate::process(FnKat::FnScenegraphIterator sg
         fileAttr = groupAttr.getChildByName( "Kd_filename" );
 
 
-    //std::cout << "Prepare Texture" << std::endl;
+    std::cout << "Prepare Texture" << std::endl;
 
 
     if ( fileAttr.isValid() )
@@ -538,7 +637,7 @@ void* GeometryScenegraphLocationDelegate::process(FnKat::FnScenegraphIterator sg
     }
     else
     {
-        std::cout << "FILE ATTRIBUTE NOT VALID !!!" << std::endl;
+        std::cout << "No texture found at textures.Kd_filename or Kd_filename" << std::endl;
     }
 
 
