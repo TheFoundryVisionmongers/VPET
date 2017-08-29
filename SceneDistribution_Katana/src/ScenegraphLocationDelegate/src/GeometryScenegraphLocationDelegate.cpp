@@ -497,38 +497,40 @@ void* GeometryScenegraphLocationDelegate::process(FnKat::FnScenegraphIterator sg
     }
     else
     {
-        FnAttribute::GroupAttribute gonzoSurfAttr = materialAttr.getChildByName("gonzoSurfaceParams");
-        if (gonzoSurfAttr.isValid())
+        std::cout << "Not found prman colour" << std::endl;
+        FnAttribute::GroupAttribute geoLibSurfParams = materialAttr.getChildByName("geolibNetworkBridgeSurfaceParams");
+        if (geoLibSurfParams.isValid())
         {
-            std::cout << "Found Gonzo surface parameters" << std::endl;
-            FnAttribute::FloatAttribute baseColorAttr = gonzoSurfAttr.getChildByName( "baseColor" );
-            if ( baseColorAttr.isValid() )
+            std::cout << "Found Geolib surface params" << std::endl;
+            FnAttribute::FloatAttribute diffuseAttr = geoLibSurfParams.getChildByName( "BaseColor" );
+            if ( diffuseAttr.isValid() )
             {
-                std::cout << "Found Gonzo baseColor" << std::endl;
                 // Get the color value
-                FnAttribute::FloatConstVector colorData = baseColorAttr.getNearestSample(0.0f);
+                FnAttribute::FloatConstVector colorData = diffuseAttr.getNearestSample(0.0f);
 
                 nodeGeo->color[0] = colorData[0];
                 nodeGeo->color[1] = colorData[1];
                 nodeGeo->color[2] = colorData[2];
+                std::cout << "Found Geolib colour: " << nodeGeo->color[0] << ", " << nodeGeo->color[1] << ", " << nodeGeo->color[2] << std::endl;
             }
             else
             {
-                std::cout << "No Gonzo colour" << std::endl;
+                std::cout << "No Geolib colour" << std::endl;
             }
         }
         else
         {
-            FnAttribute::GroupAttribute fbxSurfAttr = materialAttr.getChildByName("fbxSurfaceParams");
-            if (fbxSurfAttr.isValid())
+            std::cout << "Not found geolib colour" << std::endl;
+            FnAttribute::GroupAttribute gonzoSurfAttr = materialAttr.getChildByName("gonzoSurfaceParams");
+            if (gonzoSurfAttr.isValid())
             {
-                std::cout << "Found FBX surface parameters" << std::endl;
-                FnAttribute::FloatAttribute diffuseAttr = fbxSurfAttr.getChildByName( "Diffuse" );
-                if ( diffuseAttr.isValid() )
+                std::cout << "Found Gonzo surface parameters" << std::endl;
+                FnAttribute::FloatAttribute baseColorAttr = gonzoSurfAttr.getChildByName( "baseColor" );
+                if ( baseColorAttr.isValid() )
                 {
-                    std::cout << "Found FBX diffuse" << std::endl;
+                    std::cout << "Found Gonzo baseColor" << std::endl;
                     // Get the color value
-                    FnAttribute::FloatConstVector colorData = diffuseAttr.getNearestSample(0.0f);
+                    FnAttribute::FloatConstVector colorData = baseColorAttr.getNearestSample(0.0f);
 
                     nodeGeo->color[0] = colorData[0];
                     nodeGeo->color[1] = colorData[1];
@@ -536,21 +538,22 @@ void* GeometryScenegraphLocationDelegate::process(FnKat::FnScenegraphIterator sg
                 }
                 else
                 {
-                    std::cout << "No FBX colour" << std::endl;
+                    std::cout << "No Gonzo colour" << std::endl;
                 }
             }
             else
             {
-                FnAttribute::GroupAttribute revitSurfAttr = materialAttr.getChildByName("revitSurfaceParams");
-                if (revitSurfAttr.isValid())
+                std::cout << "Not found Gonzo colour" << std::endl;
+                FnAttribute::GroupAttribute fbxSurfAttr = materialAttr.getChildByName("fbxSurfaceParams");
+                if (fbxSurfAttr.isValid())
                 {
-                    std::cout << "Found Revit surface params" << std::endl;
-                    FnAttribute::DoubleAttribute diffuseAttr = revitSurfAttr.getChildByName( "color" );
+                    std::cout << "Found FBX surface parameters" << std::endl;
+                    FnAttribute::FloatAttribute diffuseAttr = fbxSurfAttr.getChildByName( "Diffuse" );
                     if ( diffuseAttr.isValid() )
                     {
-                        std::cout << "Found Revit colour" << std::endl;
+                        std::cout << "Found FBX diffuse" << std::endl;
                         // Get the color value
-                        FnAttribute::DoubleConstVector colorData = diffuseAttr.getNearestSample(0.0f);
+                        FnAttribute::FloatConstVector colorData = diffuseAttr.getNearestSample(0.0f);
 
                         nodeGeo->color[0] = colorData[0];
                         nodeGeo->color[1] = colorData[1];
@@ -558,12 +561,37 @@ void* GeometryScenegraphLocationDelegate::process(FnKat::FnScenegraphIterator sg
                     }
                     else
                     {
-                        std::cout << "No Revit colour" << std::endl;
+                        std::cout << "No FBX colour" << std::endl;
                     }
                 }
                 else
                 {
-                    std::cout << "No material attributes" << std::endl;
+                    std::cout << "Not found FBX colour" << std::endl;
+                    FnAttribute::GroupAttribute revitSurfAttr = materialAttr.getChildByName("revitSurfaceParams");
+                    if (revitSurfAttr.isValid())
+                    {
+                        std::cout << "Found Revit surface params" << std::endl;
+                        FnAttribute::DoubleAttribute diffuseAttr = revitSurfAttr.getChildByName( "color" );
+                        if ( diffuseAttr.isValid() )
+                        {
+                            std::cout << "Found Revit colour" << std::endl;
+                            // Get the color value
+                            FnAttribute::DoubleConstVector colorData = diffuseAttr.getNearestSample(0.0f);
+
+                            nodeGeo->color[0] = colorData[0];
+                            nodeGeo->color[1] = colorData[1];
+                            nodeGeo->color[2] = colorData[2];
+                        }
+                        else
+                        {
+                            std::cout << "No Revit colour" << std::endl;
+                        }
+                    }
+                    else
+                    {
+                        std::cout << "Not found Revit colour" << std::endl;
+                        std::cout << "No material attributes at all" << std::endl;
+                    }
                 }
             }
         }
